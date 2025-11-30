@@ -29,7 +29,10 @@ func (s *SQLiteStorage) GetReadyWork(ctx context.Context, filter types.WorkFilte
 		args = append(args, *filter.Priority)
 	}
 
-	if filter.Assignee != nil {
+	if filter.Unassigned {
+		// Filter to issues with no assignee (NULL or empty string)
+		whereClauses = append(whereClauses, "(i.assignee IS NULL OR i.assignee = '')")
+	} else if filter.Assignee != nil {
 		whereClauses = append(whereClauses, "i.assignee = ?")
 		args = append(args, *filter.Assignee)
 	}

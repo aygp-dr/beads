@@ -959,6 +959,7 @@ func (s *Server) handleReady(req *Request) Response {
 		SortPolicy: types.SortPolicy(readyArgs.SortPolicy),
 		Labels:     util.NormalizeLabels(readyArgs.Labels),
 		LabelsAny:  util.NormalizeLabels(readyArgs.LabelsAny),
+		Unassigned: readyArgs.Unassigned,
 	}
 	if readyArgs.Assignee != "" {
 		wf.Assignee = &readyArgs.Assignee

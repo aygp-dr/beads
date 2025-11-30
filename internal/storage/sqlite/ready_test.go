@@ -168,6 +168,41 @@ func TestGetReadyWorkWithAssigneeFilter(t *testing.T) {
 	}
 }
 
+func TestGetReadyWorkWithUnassignedFilter(t *testing.T) {
+	store, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	ctx := context.Background()
+
+	// Create issues with different assignees
+	issueAlice := &types.Issue{Title: "Alice's task", Status: types.StatusOpen, Priority: 1, IssueType: types.TypeTask, Assignee: "alice"}
+	issueBob := &types.Issue{Title: "Bob's task", Status: types.StatusOpen, Priority: 1, IssueType: types.TypeTask, Assignee: "bob"}
+	issueUnassigned1 := &types.Issue{Title: "Unassigned 1", Status: types.StatusOpen, Priority: 1, IssueType: types.TypeTask}
+	issueUnassigned2 := &types.Issue{Title: "Unassigned 2", Status: types.StatusOpen, Priority: 2, IssueType: types.TypeTask}
+
+	store.CreateIssue(ctx, issueAlice, "test-user")
+	store.CreateIssue(ctx, issueBob, "test-user")
+	store.CreateIssue(ctx, issueUnassigned1, "test-user")
+	store.CreateIssue(ctx, issueUnassigned2, "test-user")
+
+	// Filter for unassigned issues (salvage yard)
+	ready, err := store.GetReadyWork(ctx, types.WorkFilter{Status: types.StatusOpen, Unassigned: true})
+	if err != nil {
+		t.Fatalf("GetReadyWork failed: %v", err)
+	}
+
+	if len(ready) != 2 {
+		t.Fatalf("Expected 2 unassigned issues, got %d", len(ready))
+	}
+
+	// Verify both are unassigned
+	for _, issue := range ready {
+		if issue.Assignee != "" {
+			t.Errorf("Expected unassigned issue, got assignee '%s'", issue.Assignee)
+		}
+	}
+}
+
 func TestGetReadyWorkWithLimit(t *testing.T) {
 	store, cleanup := setupTestDB(t)
 	defer cleanup()
