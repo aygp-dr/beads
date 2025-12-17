@@ -15,8 +15,9 @@ func checkDiskSpace(path string) (uint64, bool) {
 	}
 
 	// Calculate available space in bytes, then convert to MB
-	// Bavail is uint64, Bsize is int64; overflow is intentional/safe in this context
-	availableBytes := stat.Bavail * uint64(stat.Bsize) //nolint:gosec
+	// Bavail type varies by OS (uint64 on Linux, int64 on FreeBSD/Darwin)
+	// Bsize is int64; overflow is intentional/safe in this context
+	availableBytes := uint64(stat.Bavail) * uint64(stat.Bsize) //nolint:gosec
 	availableMB := availableBytes / (1024 * 1024)
 
 	return availableMB, true
